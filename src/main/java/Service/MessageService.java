@@ -1,0 +1,51 @@
+package Service;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+import DAO.MessageDAO;
+import Model.Message;
+import Util.ConnectionUtil;
+
+public class MessageService {
+    private MessageDAO messageDAO;
+
+    public MessageService(){
+        messageDAO = new MessageDAO();
+    }
+
+    public MessageService(MessageDAO messageDAO){
+        this.messageDAO = messageDAO;
+    }
+
+    public Message create_message(Message message){
+        int posted_by = message.getPosted_by();
+        String message_text = message.getMessage_text();
+        long time_posted_epoch = message.getTime_posted_epoch();
+        return messageDAO.create_message(posted_by, message_text, time_posted_epoch);
+    }
+
+    public List<Message> get_all_messages(){
+        return messageDAO.get_all_messages();
+    }
+
+    public List<Message> get_all_messages_by_id(Message message){
+        int message_id = message.getMessage_id();
+        return messageDAO.get_all_messages_by_id(message_id);
+    }
+
+    public boolean delete_message_by_id(Message message){
+        int message_id = message.getMessage_id();
+        return messageDAO.delete_message_by_id(message_id);
+    }
+
+    public Message update_message(Message message){
+        int message_id = message.getMessage_id();
+        int posted_by = message.getPosted_by();
+        String message_text = message.getMessage_text();
+        long time_posted_epoch = message.getTime_posted_epoch();
+        return messageDAO.updated_message(message_id, posted_by, message_text, time_posted_epoch);
+    }
+}
