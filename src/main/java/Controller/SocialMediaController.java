@@ -44,8 +44,9 @@ public class SocialMediaController {
 
     private void createMessage(Context ctx) {
         try {
-            boolean isCreated = messageService.create_message(parseRequestBody(ctx, Message.class));
-            if (isCreated) {
+            Message isCreated = messageService.create_message(parseRequestBody(ctx, Message.class));
+            if (isCreated != null) {
+                ctx.json(isCreated);
                 ctx.status(201).json("Message created successfully");
             } else {
                 ctx.status(400).json("Message creation failed");
@@ -57,11 +58,11 @@ public class SocialMediaController {
 
     private void deleteMessageByMessageId(Context ctx) {
         try {
-            Message deletedMessage = messageService.delete_message_by_id(parseRequestBody(ctx, Message.class));
-            if (deletedMessage != null) {
-                ctx.json(deletedMessage);
+            boolean deletedMessage = messageService.delete_message_by_id(parseRequestBody(ctx, Message.class));
+            if (deletedMessage) {
+                ctx.status(200).json("Deleted messege");
             } else {
-                ctx.status(400).json("Message deletion failed");
+                ctx.status(200);
             }
         } catch (JsonProcessingException e) {
             ctx.status(400).json("Invalid message data");
@@ -69,25 +70,20 @@ public class SocialMediaController {
     }
 
     private void retrieveAllMessagesForUser(Context ctx) {
-        try {
-            // Extract the message_id from path parameters or query parameters
-            String messageId = ctx.pathParam("message_id");  // If passed as a path parameter
-            // Alternatively, use queryParam for query parameters
-            // String messageId = ctx.queryParam("message_id");
-    
-            if (messageId != null && !messageId.isEmpty()) {
-                // Assuming MessageService has a method to get a message by ID
-                Message message = messageService.get_all_message_by_id(messageId);  // Modify service method accordingly
-                if (message != null) {
-                    ctx.json(message);  // Return the found message
-                } else {
-                    ctx.status(404).json("Message not found");
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            Message message = mapper.readValue(ctx.body(), Message.class);
+            List<Message> retrievedMessage = messageService.get_all_messages_by_id(message);
+            if(retrievedMessage.size() != 0){
+                for(Message messages : retrievedMessage){
+                    ctx.json(mapper.writeValueAsString(messages));
                 }
-            } else {
-                ctx.status(400).json("Missing message_id");
+            }else{
+                ctx.status(400);
             }
-        } catch (Exception e) {
-            ctx.status(500).json("Error processing request");
+        }
+        catch(Exception e){
+            ctx.status(400);
         }
     }
     
