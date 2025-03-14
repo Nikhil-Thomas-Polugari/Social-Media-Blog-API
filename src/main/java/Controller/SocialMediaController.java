@@ -29,5 +29,13 @@ public class SocialMediaController {
         context.json("sample text");
     }
 
-
+    public void createMessage (){}
+    public void deleteMessageByMessageId(){}
+    public void retrieveAllMessagesForUser(){}
+    public void retrieveAllMessages(){}
+    public void updateMessage(){}
+    public void userLogin(){}
+    public void userRegistration(){
+        
+    }
 }
