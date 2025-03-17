@@ -26,20 +26,21 @@ public class MessageDAO {
     }
     private boolean valid_message(int message_id){
         Connection connection = ConnectionUtil.getConnection();
+        int message_id_from_table = 0;
         try{
-            String sql = "SELECT message_text FROM message WHERE message_id = ?;";
+            String sql = "SELECT message_id FROM message WHERE message_id = ?;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setInt(1, message_id);
             preparedStatement.executeQuery();
             ResultSet loginResultSet = preparedStatement.getGeneratedKeys();
             if (loginResultSet.next()){
-                return true;
+                message_id_from_table = loginResultSet.getInt(1);
             }
         }
         catch(SQLException e){
             System.out.print(e.getMessage());
         }
-        return false;
+        return message_id == message_id_from_table;
     }
 
     public Message create_message(Message message){
@@ -103,22 +104,26 @@ public class MessageDAO {
     }
     
 
-    public boolean delete_message_by_id(int message_id){
+    public Message delete_message_by_id(int message_id){
         Connection connection = ConnectionUtil.getConnection();
         try{
             if(valid_message(message_id)){
-                String sql = "DELETE FROM message WHERE message_id = ?;";
+                String sql = "SELECT message WHERE message_id = ?;";
                 PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                 preparedStatement.setInt(1, message_id);
                 ResultSet deleteMessageResultSet = preparedStatement.executeQuery();
                 if(deleteMessageResultSet.next()){
-                    return true;
+                    int generated_message_id  = deleteMessageResultSet.getInt("message_id");
+                    int generated_posted_by = deleteMessageResultSet.getInt("posted_by");
+                    String generated_message_text = deleteMessageResultSet.getString("message_text");
+                    long generated_time_posted_epoch = deleteMessageResultSet.getLong("time_posted_epoch");
+                    return new Message(generated_message_id, generated_posted_by, generated_message_text, generated_time_posted_epoch);
                 }
             }
         }catch(SQLException e){
             System.out.print(e.getMessage());
         }
-        return false;
+        return null;
     }
 
     public Message updated_message(int message_id, Message message){

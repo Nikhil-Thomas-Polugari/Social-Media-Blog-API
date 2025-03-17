@@ -13,7 +13,7 @@ public class AccountService {
     public AccountService(AccountDAO accountDAO){
         this.accountDAO = accountDAO;
     }
-    
+
     public Account user_registration(Account account){
         return accountDAO.user_registration(account);
     }

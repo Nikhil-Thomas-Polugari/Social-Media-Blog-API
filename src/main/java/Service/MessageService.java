@@ -33,7 +33,7 @@ public class MessageService {
         return messageDAO.get_all_messages_by_id(message_id);
     }
 
-    public boolean delete_message_by_id(Message message){
+    public Message delete_message_by_id(Message message){
         int message_id = message.getMessage_id();
         return messageDAO.delete_message_by_id(message_id);
     }

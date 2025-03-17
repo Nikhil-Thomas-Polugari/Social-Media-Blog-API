@@ -21,7 +21,7 @@ public class SocialMediaController {
 
     public Javalin startAPI() {
         Javalin app = Javalin.create();
-        app.get("example-endpoint", this::exampleHandler);
+        //app.get("example-endpoint", this::exampleHandler);
         app.post("/message", this::createMessage);
         app.delete("/message", this::deleteMessageByMessageId);
         app.get("/messages/message_id", this::retrieveAllMessagesForUser);
@@ -32,32 +32,28 @@ public class SocialMediaController {
         //app.start(8080);
         return app;
     }
-
+    /*
     private void exampleHandler(Context context) {
         context.json("sample text");
     }
-
+    */
 
     private void createMessage(Context ctx) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         Message message = mapper.readValue(ctx.body(), Message.class);
         Message created_Message = messageService.create_message(message);
-        if (created_Message != null) {
-            ctx.json(message);
-        } else {
+        if (created_Message == null) {
             ctx.status(400);
+        } else {
+            ctx.json(message);
         }
     }
 
     private void deleteMessageByMessageId(Context ctx) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         Message message = mapper.readValue(ctx.body(), Message.class);
-        boolean deletedMessage = messageService.delete_message_by_id(message);
-        if (!deletedMessage) {
-            ctx.status(200);
-        } else {
-            ctx.json("Deleted messege");
-        }
+        Message deletedMessage = messageService.delete_message_by_id(message);
+        ctx.status(200).json(deletedMessage);
     }
 
     private void retrieveAllMessagesForUser(Context ctx) throws JsonProcessingException {
@@ -95,10 +91,10 @@ public class SocialMediaController {
         ObjectMapper mapper = new ObjectMapper();
         Account account = mapper.readValue(ctx.body(), Account.class);
         Account loggedInUser = accountService.user_login(account);
-        if (loggedInUser == null) {
-            ctx.status(400);
-        } else {
+        if (loggedInUser != null) {
             ctx.json(loggedInUser);
+        } else {
+            ctx.status(401);
         }
     }
 
@@ -106,10 +102,10 @@ public class SocialMediaController {
         ObjectMapper mapper = new ObjectMapper();
         Account account = mapper.readValue(ctx.body(), Account.class);
         Account registeredUser = accountService.user_registration(account);
-        if (registeredUser == null) {
-            ctx.status(400);
-        } else {
+        if (registeredUser != null) {
             ctx.json(registeredUser);
+        } else {
+            ctx.status(400);
         }
     }
 }
