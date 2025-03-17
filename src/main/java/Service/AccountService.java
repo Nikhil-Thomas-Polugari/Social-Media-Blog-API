@@ -14,11 +14,11 @@ public class AccountService {
         this.accountDAO = accountDAO;
     }
     
-    public Account user_registration(String username, String password){
-        return accountDAO.user_registration(username, password);
+    public Account user_registration(Account account){
+        return accountDAO.user_registration(account);
     }
 
-    public Account user_login(String username, String password){
-        return accountDAO.user_login(username, password);
+    public Account user_login(Account account){
+        return accountDAO.user_login(account);
     }
 }

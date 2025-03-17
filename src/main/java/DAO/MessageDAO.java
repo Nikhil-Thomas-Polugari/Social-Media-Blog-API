@@ -27,7 +27,7 @@ public class MessageDAO {
     private boolean valid_message(int message_id){
         Connection connection = ConnectionUtil.getConnection();
         try{
-            String sql = "SELECT account_id FROM message WHERE message_id = ?;";
+            String sql = "SELECT message_text FROM message WHERE message_id = ?;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setInt(1, message_id);
             preparedStatement.executeQuery();
@@ -42,10 +42,13 @@ public class MessageDAO {
         return false;
     }
 
-    public Message create_message(int posted_by, String message_text, long time_posted_epoch){
+    public Message create_message(Message message){
+        int posted_by = message.getPosted_by();
+        String message_text = message.getMessage_text();
+        long time_posted_epoch = message.getTime_posted_epoch();
         Connection connection = ConnectionUtil.getConnection();
         try{
-            if(registered_user(posted_by) && message_text.length() > 255 && (message_text != "" || message_text != null)){
+            if(registered_user(posted_by) && message_text.length() < 255 && (message_text != "" || message_text != null)){
                 String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?,?,?);";
                 PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                 preparedStatement.setInt(1, posted_by);
@@ -54,7 +57,8 @@ public class MessageDAO {
                 preparedStatement.executeUpdate();
                 ResultSet messageResultSet = preparedStatement.getGeneratedKeys();
                 if (messageResultSet.next()){
-                    int generated_message_id = (int) messageResultSet.getLong(1);
+                    //int generated_message_id = (int) messageResultSet.getLong(1);
+                    int generated_message_id  = messageResultSet.getInt("message_id");
                     return new Message(generated_message_id, posted_by, message_text, time_posted_epoch);
                 }
             }
@@ -117,21 +121,21 @@ public class MessageDAO {
         return false;
     }
 
-    public Message updated_message(int message_id, int posted_by, String message_text, long time_posted_epoch){
+    public Message updated_message(int message_id, Message message){
+        String message_text = message.getMessage_text();
         Connection connection = ConnectionUtil.getConnection();
         try{
-            if(registered_user(posted_by) && message_text.length() > 255 && (message_text != "" || message_text != null)){
-                String sql = "UPDATE message SET posted_by = ?, message_text = ?, time_posted_enoch = ? WHERE message_id = ?";
+            if(valid_message(message_id) && (message_text.length() < 255 && (message_text != "" || message_text != null))){
+                String sql = "UPDATE message SET message_text = ? WHERE message_id = ?";
                 PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                preparedStatement.setInt(1, posted_by);
-                preparedStatement.setString(2, message_text);
-                preparedStatement.setLong(3,time_posted_epoch);
-                preparedStatement.setInt(4, message_id);
+                preparedStatement.setString(1, message_text);
+                preparedStatement.setInt(2, message_id);
                 preparedStatement.executeUpdate();
                 ResultSet messageResultSet = preparedStatement.getGeneratedKeys();
                 if (messageResultSet.next()){
-                    int generated_message_id = (int) messageResultSet.getLong(1);
-                    return new Message(generated_message_id, posted_by, message_text, time_posted_epoch);
+                    int generated_posted_by = (int) messageResultSet.getLong(2);
+                    long generated_time_posted_epoch = messageResultSet.getLong(4);
+                    return new Message(message_id, generated_posted_by, message_text, generated_time_posted_epoch);
                 }
             }
         }catch(SQLException e){

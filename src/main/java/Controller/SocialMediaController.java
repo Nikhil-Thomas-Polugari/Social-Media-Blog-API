@@ -8,7 +8,7 @@ import Service.AccountService;
 import Service.MessageService;
 import Model.Account;
 import Model.Message;
-import java.util.List;
+import java.util.*;
 
 public class SocialMediaController {
     AccountService accountService;
@@ -24,12 +24,12 @@ public class SocialMediaController {
         app.get("example-endpoint", this::exampleHandler);
         app.post("/message", this::createMessage);
         app.delete("/message", this::deleteMessageByMessageId);
-        app.get("/messages/user", this::retrieveAllMessagesForUser);
+        app.get("/messages/message_id", this::retrieveAllMessagesForUser);
         app.get("/messages", this::retrieveAllMessages);
         app.put("/message", this::updateMessage);
         app.post("/login", this::userLogin);
         app.post("/register", this::userRegistration);
-
+        //app.start(8080);
         return app;
     }
 
@@ -37,102 +37,79 @@ public class SocialMediaController {
         context.json("sample text");
     }
 
-    private <T> T parseRequestBody(Context ctx, Class<T> clazz) throws JsonProcessingException {
+
+    private void createMessage(Context ctx) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(ctx.body(), clazz);
-    }
-
-    private void createMessage(Context ctx) {
-        try {
-            Message isCreated = messageService.create_message(parseRequestBody(ctx, Message.class));
-            if (isCreated != null) {
-                ctx.json(isCreated);
-                ctx.status(201).json("Message created successfully");
-            } else {
-                ctx.status(400).json("Message creation failed");
-            }
-        } catch (JsonProcessingException e) {
-            ctx.status(400).json("Invalid message data");
-        }
-    }
-
-    private void deleteMessageByMessageId(Context ctx) {
-        try {
-            boolean deletedMessage = messageService.delete_message_by_id(parseRequestBody(ctx, Message.class));
-            if (deletedMessage) {
-                ctx.status(200).json("Deleted messege");
-            } else {
-                ctx.status(200);
-            }
-        } catch (JsonProcessingException e) {
-            ctx.status(400).json("Invalid message data");
-        }
-    }
-
-    private void retrieveAllMessagesForUser(Context ctx) {
-        try{
-            ObjectMapper mapper = new ObjectMapper();
-            Message message = mapper.readValue(ctx.body(), Message.class);
-            List<Message> retrievedMessage = messageService.get_all_messages_by_id(message);
-            if(retrievedMessage.size() != 0){
-                for(Message messages : retrievedMessage){
-                    ctx.json(mapper.writeValueAsString(messages));
-                }
-            }else{
-                ctx.status(400);
-            }
-        }
-        catch(Exception e){
+        Message message = mapper.readValue(ctx.body(), Message.class);
+        Message created_Message = messageService.create_message(message);
+        if (created_Message != null) {
+            ctx.json(message);
+        } else {
             ctx.status(400);
         }
     }
+
+    private void deleteMessageByMessageId(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(ctx.body(), Message.class);
+        boolean deletedMessage = messageService.delete_message_by_id(message);
+        if (!deletedMessage) {
+            ctx.status(200);
+        } else {
+            ctx.json("Deleted messege");
+        }
+    }
+
+    private void retrieveAllMessagesForUser(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(ctx.body(), Message.class);
+        List<Message> retrievedMessage = messageService.get_all_messages_by_id(message);
+        if(retrievedMessage.size() == 0){
+            ctx.status(400);
+        }else{
+            for(Message messages : retrievedMessage){
+                ctx.json(messages);
+            }
+        }
+    }
     
     
 
-    private void retrieveAllMessages(Context ctx) {
+    private void retrieveAllMessages(Context ctx) throws JsonProcessingException {
         List<Message> messages = messageService.get_all_messages();
         ctx.json(messages);
     }
 
-    private void updateMessage(Context ctx) {
-        try {
-            Message message = parseRequestBody(ctx, Message.class);
-            Message updatedMessage = messageService.update_message(message);
-            if (updatedMessage != null) {
-                ctx.json(updatedMessage);
-            } else {
-                ctx.status(400).json("Message update failed");
-            }
-        } catch (JsonProcessingException e) {
-            ctx.status(400).json("Invalid message data");
+    private void updateMessage(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Message message = mapper.readValue(ctx.body(), Message.class);
+        Message updatedMessage = messageService.update_message(Integer.parseInt(ctx.pathParam("messages")), message);
+        if (updatedMessage == null) {
+            ctx.status(400);
+        } else {
+            ctx.json(updatedMessage);
         }
     }
 
-    private void userLogin(Context ctx) {
-        try {
-            Account user = parseRequestBody(ctx, Account.class);
-            Account loggedInUser = accountService.user_login(user.getUsername(), user.getPassword());  // Pass username and password
-            if (loggedInUser != null) {
-                ctx.json(loggedInUser);
-            } else {
-                ctx.status(400).json("Login failed");
-            }
-        } catch (JsonProcessingException e) {
-            ctx.status(400).json("Invalid login data");
+    private void userLogin(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Account account = mapper.readValue(ctx.body(), Account.class);
+        Account loggedInUser = accountService.user_login(account);
+        if (loggedInUser == null) {
+            ctx.status(400);
+        } else {
+            ctx.json(loggedInUser);
         }
     }
 
-    private void userRegistration(Context ctx) {
-        try {
-            Account user = parseRequestBody(ctx, Account.class);
-            Account registeredUser = accountService.user_registration(user.getUsername(), user.getPassword());  // Pass username and password
-            if (registeredUser != null) {
-                ctx.json(registeredUser);
-            } else {
-                ctx.status(400).json("Registration failed");
-            }
-        } catch (JsonProcessingException e) {
-            ctx.status(400).json("Invalid registration data");
+    private void userRegistration(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Account account = mapper.readValue(ctx.body(), Account.class);
+        Account registeredUser = accountService.user_registration(account);
+        if (registeredUser == null) {
+            ctx.status(400);
+        } else {
+            ctx.json(registeredUser);
         }
     }
 }
