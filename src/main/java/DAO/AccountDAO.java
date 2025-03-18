@@ -4,12 +4,13 @@ import Model.Account;
 import Util.ConnectionUtil;
 
 import java.sql.*;
+import java.util.*;
 
 public class AccountDAO {
     private boolean registered_user(String username){
         Connection connection = ConnectionUtil.getConnection();
         try{
-            String sql = "SELECT account_id FROM account WHERE username = ?;";
+            String sql = "SELECT * FROM account WHERE username = ?;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, username);
             preparedStatement.executeQuery();
@@ -27,26 +28,46 @@ public class AccountDAO {
     public Account user_registration(Account account){
         String username = account.getUsername();
         String password = account.getPassword();
+        //System.out.println(username + " " + password);
         Connection connection = ConnectionUtil.getConnection();
         try{
-            if (registered_user(username) || password.length() < 4 || username == ""  || username == null) {
+            if (username == null || username.isEmpty() || password.length() < 4) {
+                //System.out.println("Checking if the Password is too short or username is empty");
                 return null;
             }
-            else{
-                String sql = "INSERT INTO account (username, password) VALUES (?,?);";
-                PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                preparedStatement.setString(1, username);
-                preparedStatement.setString(2, password);
-                preparedStatement.executeUpdate();
-                ResultSet registrationResultSet = preparedStatement.getGeneratedKeys();
-                if (registrationResultSet.next()){
-                    int generated_registration_id = (int) registrationResultSet.getLong(1);
-                    return new Account(generated_registration_id, username, password);
-                }
+        
+            // Check if user already exists
+            String checkUserSQL = "SELECT account_id FROM account WHERE username = ?;";
+            PreparedStatement checkStmt = connection.prepareStatement(checkUserSQL);
+            checkStmt.setString(1, username);
+            ResultSet resultSet = checkStmt.executeQuery();
+        
+            if (resultSet.next()) {
+                // User already exists, return the existing user
+                int existingAccountId = resultSet.getInt("account_id");
+                //System.out.println("User already registered, returning existing account.");
+                return new Account(existingAccountId, username, password);
             }
+        
+            // User not found, proceed with registration
+            //System.out.println("Registering new user.");
+            String insertUserSQL = "INSERT INTO account (username, password) VALUES (?, ?);";
+            PreparedStatement insertStmt = connection.prepareStatement(insertUserSQL, Statement.RETURN_GENERATED_KEYS);
+            insertStmt.setString(1, username);
+            insertStmt.setString(2, password);
+            insertStmt.executeUpdate();
+        
+            // Get the newly generated account ID
+            ResultSet generatedKeys = insertStmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                int newAccountId = generatedKeys.getInt(1);
+                return new Account(newAccountId, username, password);
+            }
+        
+            return null;
         }
         catch(SQLException e){
-            System.out.print(e.getMessage());
+            System.out.println(e.getMessage());
         }
         return null;
     }
@@ -56,24 +77,25 @@ public class AccountDAO {
         String password = account.getPassword();
         Connection connection = ConnectionUtil.getConnection();
         try{
-            if (!registered_user(username) || password.length() < 4 || username == ""  || username == null) {
-                return null;
+            if (password.length() < 4) {
+                return null; // Short password check before DB operations
             }
-            else{
-                String sql = "SELECT * FROM account WHERE username = ? AND password = ?;";
-                PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                preparedStatement.setString(1, username);
-                preparedStatement.setString(2, password);
-                preparedStatement.executeQuery();
-                ResultSet loginResultSet = preparedStatement.getGeneratedKeys();
-                if (loginResultSet.next()){
-                    return new Account(loginResultSet.getInt("account_id"), loginResultSet.getString("username"), loginResultSet.getString("password"));
-                }
+            
+            // Check if user exists
+            String sql = "SELECT account_id FROM account WHERE username = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, username);
+            ResultSet loginResultSet = preparedStatement.executeQuery();
+            
+            if (loginResultSet.next()) {
+                // User exists, update the account object
+                account.setAccount_id(loginResultSet.getInt("account_id"));
             }
+            
         }
         catch(SQLException e){
             System.out.print(e.getMessage());
         }
-        return null;
+        return account;
     }
 }
