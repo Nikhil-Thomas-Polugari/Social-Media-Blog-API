@@ -42,10 +42,10 @@ public class SocialMediaController {
         ObjectMapper mapper = new ObjectMapper();
         Message message = mapper.readValue(ctx.body(), Message.class);
         Message created_Message = messageService.create_message(message);
-        if (created_Message == null) {
-            ctx.status(400);
-        } else {
+        if (created_Message != null) {
             ctx.json(message);
+        } else {
+            ctx.status(400);
         }
     }
 

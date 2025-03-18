@@ -3,8 +3,6 @@ package Service;
 import DAO.AccountDAO;
 import Model.Account;
 
-import java.util.*;
-
 public class AccountService {
     private AccountDAO accountDAO;
 
@@ -14,15 +12,6 @@ public class AccountService {
 
     public AccountService(AccountDAO accountDAO){
         this.accountDAO = accountDAO;
-    }
-    /*
-    public boolean registered_user(String username){
-        return accountDAO.registered_user(username);
-    }
-    */
-
-    public List<Account> registered_accounts(){
-        return accountDAO.all_users();
     }
 
     public Account user_registration(Account account){

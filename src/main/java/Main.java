@@ -1,12 +1,6 @@
 import Controller.SocialMediaController;
 import io.javalin.Javalin;
 
-import Model.*;
-import Service.*;
-import java.util.*;
-
-import java.sql.*;
-import Util.ConnectionUtil;
 
 /**
  * This class is provided with a main method to allow you to manually run and test your application. This class will not
@@ -14,16 +8,11 @@ import Util.ConnectionUtil;
  */
 public class Main {
     public static void main(String[] args) {
-
-        AccountService accountService = new AccountService();
-        Account account = new Account("testuser2", "password2");
-        //System.out.println(accountService.user_registration(account));
-        System.out.println(accountService.user_login(account));
-
-        /*
+        
+        
         SocialMediaController controller = new SocialMediaController();
         Javalin app = controller.startAPI();
         app.start(8080);
-        */
+        
     }
 }
