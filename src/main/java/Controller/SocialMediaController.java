@@ -43,7 +43,7 @@ public class SocialMediaController {
         Message message = mapper.readValue(ctx.body(), Message.class);
         Message created_Message = messageService.create_message(message);
         if (created_Message != null) {
-            ctx.json(message);
+            ctx.json(created_Message);
         } else {
             ctx.status(400);
         }
@@ -59,13 +59,11 @@ public class SocialMediaController {
     private void retrieveAllMessagesForUser(Context ctx) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         Message message = mapper.readValue(ctx.body(), Message.class);
-        List<Message> retrievedMessage = messageService.get_all_messages_by_id(message);
-        if(retrievedMessage.size() == 0){
-            ctx.status(400);
+        Message retrievedMessage = messageService.get_all_messages_by_id(message);
+        if(retrievedMessage!= null){
+            ctx.json(retrievedMessage);
         }else{
-            for(Message messages : retrievedMessage){
-                ctx.json(messages);
-            }
+            ctx.status(400);
         }
     }
     

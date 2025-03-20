@@ -28,7 +28,7 @@ public class MessageService {
         return messageDAO.get_all_messages();
     }
 
-    public List<Message> get_all_messages_by_id(Message message){
+    public Message get_all_messages_by_id(Message message){
         int message_id = message.getMessage_id();
         return messageDAO.get_all_messages_by_id(message_id);
     }
@@ -39,6 +39,7 @@ public class MessageService {
     }
 
     public Message update_message(int message_id, Message message){
-        return messageDAO.updated_message(message_id, message);
+        String message_text = message.getMessage_text();
+        return messageDAO.updated_message(message_id, message_text);
     }
 }

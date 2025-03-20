@@ -51,25 +51,20 @@ public class AccountDAO {
     public Account user_registration(Account account){
         String username = account.getUsername();
         String password = account.getPassword();
-        System.out.println(username);
         Connection connection = ConnectionUtil.getConnection();
         try{
             if (username == null || username.isEmpty() || password.length() < 4) {
-                System.out.println("In the check for invald credentials");
                 return null;
             }
-            System.out.println("Checking if the user is in the account table");
             String checkUserSQL = "SELECT account_id FROM account WHERE username = ?;";
             PreparedStatement checkStmt = connection.prepareStatement(checkUserSQL);
             checkStmt.setString(1, username);
             ResultSet resultSet = checkStmt.executeQuery();
             
             if (resultSet.next()) {
-                System.out.println("User is already registered");
                 return null;
             }
 
-            System.out.println("Inserting the new user");
             String insertUserSQL = "INSERT INTO account (username, password) VALUES (?, ?);";
             PreparedStatement insertStmt = connection.prepareStatement(insertUserSQL, Statement.RETURN_GENERATED_KEYS);
             insertStmt.setString(1, username);
@@ -78,7 +73,6 @@ public class AccountDAO {
         
             ResultSet generatedKeys = insertStmt.getGeneratedKeys();
             if (generatedKeys.next()) {
-                System.out.println("Returning the registered user");
                 int newAccountId = generatedKeys.getInt(1);
                 return new Account(newAccountId, username, password);
             }
@@ -95,14 +89,11 @@ public class AccountDAO {
         String username = account.getUsername();
         String password = account.getPassword();
         Connection connection = ConnectionUtil.getConnection();
-        System.out.println(username);
         try{
             if (password.length() < 4) {
-                System.out.println("Checking if the password is to short");
                 return null; // Check for short passwords before querying the DB
             }
             
-            System.out.println("Check if username exists and password matches");
             String sql = "SELECT account_id FROM account WHERE username = ? AND password = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, username);
@@ -110,11 +101,9 @@ public class AccountDAO {
             ResultSet loginResultSet = preparedStatement.executeQuery();
             
             if (loginResultSet.next()) {
-                System.out.println("User exists with matching password, update the account object");
                 account.setAccount_id(loginResultSet.getInt("account_id"));
             } else {
-                System.out.println("User doesn't exist or password is incorrect");
-                return null; // User doesn't exist or password is incorrect
+                return null;
             }            
             
         }
