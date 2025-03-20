@@ -1,13 +1,9 @@
 package Service;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 import DAO.MessageDAO;
 import Model.Message;
-import Util.ConnectionUtil;
 
 public class MessageService {
     private MessageDAO messageDAO;
