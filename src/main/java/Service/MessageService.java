@@ -24,13 +24,17 @@ public class MessageService {
         return messageDAO.get_all_messages();
     }
 
-    public Message get_all_messages_by_id(Message message){
-        int message_id = message.getMessage_id();
+    public Message get_all_messages_by_id(int message_id){
+        //int message_id = message.getMessage_id();
         return messageDAO.get_all_messages_by_id(message_id);
     }
 
-    public Message delete_message_by_id(Message message){
-        int message_id = message.getMessage_id();
+    public List<Message> get_all_messages_by_user(int posted_by){
+        return messageDAO.get_all_messages_by_user(posted_by);
+    }
+
+    public Message delete_message_by_id(int message_id){
+        //int message_id = message.getMessage_id();
         return messageDAO.delete_message_by_id(message_id);
     }
 

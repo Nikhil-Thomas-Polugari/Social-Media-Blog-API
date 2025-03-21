@@ -12,11 +12,11 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
 
-        //ConnectionUtil connection = new ConnectionUtil();
-        //connection.resetTestDatabase();
+        ConnectionUtil connection = new ConnectionUtil();
+        connection.resetTestDatabase();
 
         AccountService acc_Service = new AccountService();
-        Account account1 = new Account();
+        Account account1 = new Account("TESTUSER1", "PASSWORD");
         Account account2 = new Account("Testuser2", "password");
 
         System.out.println("1: " + acc_Service.user_registration(account1));
@@ -43,13 +43,14 @@ public class Main {
 
 
         List<Message> all_messages = msg_Service.get_all_messages();
-        System.out.println("7: ");
         for(Message message: all_messages){
-            System.out.println(message);
+            System.out.println("7: " + message);
         }
 
-        Message gottenMessage1 = msg_Service.get_all_messages_by_id(created_message_1);
-        Message gottenMessage2 = msg_Service.get_all_messages_by_id(created_message_2);
+        System.out.println();
+
+        Message gottenMessage1 = msg_Service.get_all_messages_by_id(created_message_1.getMessage_id());
+        Message gottenMessage2 = msg_Service.get_all_messages_by_id(created_message_2.getMessage_id());
 
         System.out.println("8: " + gottenMessage1);
         System.out.println("9: " + gottenMessage2);
@@ -65,9 +66,17 @@ public class Main {
 
         System.out.println();
 
-        System.out.println(msg_Service.delete_message_by_id(created_message_1));
-        System.out.println(msg_Service.delete_message_by_id(created_message_2));
+        System.out.println("12: " + msg_Service.delete_message_by_id(created_message_1.getMessage_id()));
+        System.out.println("13: " + msg_Service.delete_message_by_id(created_message_2.getMessage_id()));
 
+
+        System.out.println();
+
+
+        all_messages = msg_Service.get_all_messages();
+        for(Message message: all_messages){
+            System.out.println("14: " + message);
+        }
 
         /*
         SocialMediaController controller = new SocialMediaController();

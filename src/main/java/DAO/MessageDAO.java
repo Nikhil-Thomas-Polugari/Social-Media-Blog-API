@@ -48,7 +48,7 @@ public class MessageDAO {
         long time_posted_epoch = message.getTime_posted_epoch();
         Connection connection = ConnectionUtil.getConnection();
         
-        if (message_text == null || message_text.trim().isEmpty() || message_text.length() > 255 || message_text.length() == 0) {
+        if (message_text == null || message_text.trim().isEmpty() || message_text.length() > 255) {
             return null;
         }
     
@@ -109,6 +109,27 @@ public class MessageDAO {
     }
     
 
+    public List<Message> get_all_messages_by_user(int posted_by){
+        Connection connection = ConnectionUtil.getConnection();
+        List<Message> user_messages = new ArrayList<>();
+        try{
+            if(registered_user(posted_by)){
+                String sql = "SELECT * FROM message WHERE posted_by = ?;";
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setInt(1, posted_by);
+                ResultSet rs = preparedStatement.executeQuery();
+                while(rs.next()){
+                    Message message =  new Message(rs.getInt("message_id"), rs.getInt("posted_by"), rs.getString("message_text"), rs.getLong("time_posted_epoch"));
+                    user_messages.add(message);
+                }
+            }
+        }
+        catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return user_messages;
+    }
+
     public Message delete_message_by_id(int message_id){
         Connection connection = ConnectionUtil.getConnection();
         Message deletedMessage = new Message();
@@ -127,11 +148,17 @@ public class MessageDAO {
                     deletedMessage.setPosted_by(generated_posted_by);
                     deletedMessage.setMessage_text(generated_message_text);
                     deletedMessage.setTime_posted_epoch(generated_time_posted_epoch);
+                    String deletesql = "DELETE FROM message WHERE message_id = ?";
+                    PreparedStatement preparedStatement2 = connection.prepareStatement(deletesql);
+                    preparedStatement2.setInt(1, message_id);
+                    preparedStatement2.executeUpdate();
                 }
+                /*
                 String deletesql = "DELETE FROM message WHERE message_id = ?";
                 PreparedStatement preparedStatement2 = connection.prepareStatement(deletesql);
                 preparedStatement2.setInt(1, message_id);
                 preparedStatement2.executeUpdate();
+                */
                 }
         }catch(SQLException e){
             System.out.print(e.getMessage());

@@ -11,98 +11,135 @@ import Model.Message;
 import java.util.*;
 
 public class SocialMediaController {
-    AccountService accountService;
-    MessageService messageService;
+    private final AccountService accountService;
+    private final MessageService messageService;
+    private final ObjectMapper mapper;
 
-    public SocialMediaController(){
+    public SocialMediaController() {
         this.accountService = new AccountService();
         this.messageService = new MessageService();
+        this.mapper = new ObjectMapper();
     }
 
     public Javalin startAPI() {
         Javalin app = Javalin.create();
-        //app.get("example-endpoint", this::exampleHandler);
-        app.post("/message", this::createMessage);
-        app.delete("/message", this::deleteMessageByMessageId);
-        app.get("/messages/message_id", this::retrieveAllMessagesForUser);
+        app.post("/messages", this::createMessage);
+        app.delete("/messages/{message_id}", this::deleteMessageById);
+        app.get("/accounts/{posted_by}", this::retrieveAllMessagesForUser);
         app.get("/messages", this::retrieveAllMessages);
-        app.put("/message", this::updateMessage);
+        app.get("/messages/{message_id}", this::retrieveMessagesById);
+        app.put("/messages/{message_id}", this::updateMessage);
         app.post("/login", this::userLogin);
         app.post("/register", this::userRegistration);
-        //app.start(8080);
         return app;
     }
-    /*
-    private void exampleHandler(Context context) {
-        context.json("sample text");
-    }
-    */
 
-    private void createMessage(Context ctx) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        Message message = mapper.readValue(ctx.body(), Message.class);
-        Message created_Message = messageService.create_message(message);
-        if (created_Message != null) {
-            ctx.json(created_Message);
-        } else {
+    private void createMessage(Context ctx) {
+        try {
+            Message message = mapper.readValue(ctx.body(), Message.class);
+            Message createdMessage = messageService.create_message(message);
+            if (createdMessage != null) {
+                ctx.json(mapper.writeValueAsString(createdMessage)).contentType("application/json");
+            } else {
+                ctx.status(400);
+            }
+        } catch (JsonProcessingException e) {
             ctx.status(400);
         }
     }
 
-    private void deleteMessageByMessageId(Context ctx) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        Message message = mapper.readValue(ctx.body(), Message.class);
-        Message deletedMessage = messageService.delete_message_by_id(message);
-        ctx.status(200).json(deletedMessage);
+    private void deleteMessageById(Context ctx) {
+        try {
+            int messageId = Integer.parseInt(ctx.pathParam("message_id"));
+            Message deletedMessage = messageService.delete_message_by_id(messageId);
+            if (deletedMessage != null) {
+                ctx.json(mapper.writeValueAsString(deletedMessage)).contentType("application/json");
+            } else {
+                ctx.status(200);
+            }
+        } catch (JsonProcessingException e) {
+            ctx.status(200);
+        }
     }
 
-    private void retrieveAllMessagesForUser(Context ctx) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        Message message = mapper.readValue(ctx.body(), Message.class);
-        Message retrievedMessage = messageService.get_all_messages_by_id(message);
-        if(retrievedMessage!= null){
-            ctx.json(retrievedMessage);
-        }else{
+    private void retrieveAllMessagesForUser(Context ctx) {
+        try {
+            int userId = Integer.parseInt(ctx.pathParam("posted_by"));
+            List<Message> messages = messageService.get_all_messages_by_user(userId);
+            if (!messages.isEmpty()) {
+                ctx.json(mapper.writeValueAsString(messages)).contentType("application/json");
+            } else {
+                ctx.status(200);
+            }
+        } catch (JsonProcessingException e) {
             ctx.status(400);
         }
     }
-    
-    
 
-    private void retrieveAllMessages(Context ctx) throws JsonProcessingException {
-        List<Message> messages = messageService.get_all_messages();
-        ctx.json(messages);
-    }
-
-    private void updateMessage(Context ctx) throws JsonProcessingException {
-        //ObjectMapper mapper = new ObjectMapper();
-        //Message message = mapper.readValue(ctx.body(), Message.class);
-        Message updatedMessage = messageService.update_message(Integer.parseInt(ctx.pathParam("messages")), ctx.pathParam("message_text"));
-        if (updatedMessage == null) {
+    private void retrieveAllMessages(Context ctx) {
+        try{
+            List<Message> messages = messageService.get_all_messages();
+            ctx.json(mapper.writeValueAsString(messages));
+        }
+        catch (JsonProcessingException e){
             ctx.status(400);
-        } else {
-            ctx.json(updatedMessage);
         }
     }
 
-    private void userLogin(Context ctx) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        Account account = mapper.readValue(ctx.body(), Account.class);
-        Account loggedInUser = accountService.user_login(account);
-        if (loggedInUser != null) {
-            ctx.json(loggedInUser);
-        } else {
-            ctx.status(401);
+    private void retrieveMessagesById(Context ctx){
+        try{
+            int messageid = Integer.parseInt(ctx.pathParam("message_id"));
+            Message message = messageService.get_all_messages_by_id(messageid);
+            if (message!= null){
+                ctx.json(mapper.writeValueAsString(message)).contentType("application/json");
+            }
+        }
+        catch (JsonProcessingException e){
+            ctx.status(200);
         }
     }
 
-    private void userRegistration(Context ctx) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        Account account = mapper.readValue(ctx.body(), Account.class);
-        Account registeredUser = accountService.user_registration(account);
-        if (registeredUser != null) {
-            ctx.json(registeredUser);
-        } else {
+    private void updateMessage(Context ctx) {
+        try {
+            int messageId = Integer.parseInt(ctx.pathParam("message_id"));
+            Message message = mapper.readValue(ctx.body(), Message.class);
+            Message updatedMessage = messageService.update_message(messageId, message.getMessage_text());
+            if (updatedMessage != null) {
+                ctx.json(mapper.writeValueAsString(updatedMessage)).contentType("application/json");
+            } else {
+                ctx.status(400);
+            }
+        } catch (JsonProcessingException e) {
+            ctx.status(400);
+        } catch (NumberFormatException e) {
+            ctx.status(400);
+        }
+    }
+
+    private void userLogin(Context ctx) {
+        try {
+            Account account = mapper.readValue(ctx.body(), Account.class);
+            Account loggedInUser = accountService.user_login(account);
+            if (loggedInUser != null) {
+                ctx.json(mapper.writeValueAsString(loggedInUser)).contentType("application/json");
+            } else {
+                ctx.status(401);
+            }
+        } catch (JsonProcessingException e) {
+            ctx.status(400);
+        }
+    }
+
+    private void userRegistration(Context ctx) {
+        try {
+            Account account = mapper.readValue(ctx.body(), Account.class);
+            Account registeredUser = accountService.user_registration(account);
+            if (registeredUser != null) {
+                ctx.json(mapper.writeValueAsString(registeredUser)).contentType("application/json") ;
+            } else {
+                ctx.status(400);
+            }
+        } catch (JsonProcessingException e) {
             ctx.status(400);
         }
     }
