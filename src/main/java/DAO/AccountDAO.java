@@ -56,9 +56,10 @@ public class AccountDAO {
             if (username == null || username.isEmpty() || password.length() < 4) {
                 return null;
             }
-            String checkUserSQL = "SELECT account_id FROM account WHERE username = ?;";
+            String checkUserSQL = "SELECT account_id FROM account WHERE username = ? and passowrd = ?;";
             PreparedStatement checkStmt = connection.prepareStatement(checkUserSQL);
             checkStmt.setString(1, username);
+            checkStmt.setString(2, password);
             ResultSet resultSet = checkStmt.executeQuery();
             
             if (resultSet.next()) {
