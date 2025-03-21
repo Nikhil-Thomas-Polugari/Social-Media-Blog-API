@@ -25,10 +25,10 @@ public class SocialMediaController {
         Javalin app = Javalin.create();
         app.post("/messages", this::createMessage);
         app.delete("/messages/{message_id}", this::deleteMessageById);
-        app.get("/accounts/{posted_by}", this::retrieveAllMessagesForUser);
+        app.get("/accounts/{posted_by}/messages", this::retrieveAllMessagesForUser);
         app.get("/messages", this::retrieveAllMessages);
         app.get("/messages/{message_id}", this::retrieveMessagesById);
-        app.put("/messages/{message_id}", this::updateMessage);
+        app.patch("/messages/{message_id}", this::updateMessage);
         app.post("/login", this::userLogin);
         app.post("/register", this::userRegistration);
         return app;
@@ -55,8 +55,8 @@ public class SocialMediaController {
             if (deletedMessage != null) {
                 ctx.json(mapper.writeValueAsString(deletedMessage)).contentType("application/json");
             } else {
-                ctx.status(200);
-            }
+                ctx.status(200).contentType("application/json");
+            }            
         } catch (JsonProcessingException e) {
             ctx.status(200);
         }
@@ -66,11 +66,7 @@ public class SocialMediaController {
         try {
             int userId = Integer.parseInt(ctx.pathParam("posted_by"));
             List<Message> messages = messageService.get_all_messages_by_user(userId);
-            if (!messages.isEmpty()) {
-                ctx.json(mapper.writeValueAsString(messages)).contentType("application/json");
-            } else {
-                ctx.status(200);
-            }
+            ctx.json(mapper.writeValueAsString(messages)).contentType("application/json");
         } catch (JsonProcessingException e) {
             ctx.status(400);
         }
